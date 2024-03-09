@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="css/style.css">
+    <title>Chat App</title>
+</head>
+
+<body>
+
+    <!-- コンテンツ表示画面 -->
+
+    <div>
+        <div><span class="star">*</span>名前：<input type="text" id="uname"></div>
+        <div>
+            <textarea id="text" cols="30" rows="10"></textarea>
+            <div class="send-button">
+                <button id="send">送信</button>
+            </div>
+        </div>
+        <div id="output" style="overflow: auto; height: 300px;"></div>
+    </div>
+    <!--/ コンテンツ表示画面 -->
+
+
+
+    <!-- JQuery -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <!-- JQuery -->
+
+
+    <!--** 以下Firebase **-->
+    <script type="module">
+        import firebaseConfig from "./js/firebaseApikey.js";
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getDatabase, ref, push, set, update, onChildAdded, remove, onChildChanged, onChildRemoved }
+        from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
+
+        console.log(firebaseConfig);
+
+
+        // TODO: Add SDKs for Firebase products that you want to use
+        // https://firebase.google.com/docs/web/setup#available-libraries
+
+        //Firebase APIは別ファイル
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig); //Firebaseにアクセスする
+        const db = getDatabase(app); //リアルタイムデータベースにアクセスする
+        const dbRef = ref(db, "chat"); //データベースのchatから情報を取得する
+
+        //投稿時間取得する関数
+        function post_time() {
+            let month = new Date().getMonth() + 1;
+            let date = new Date().getDate();
+            let hour = new Date().getHours().toString().padStart(2, '0'); //時刻二桁表示（参照：https://qiita.com/Naoki_kkc/items/2a29287834c453d23ecf）
+            let minute = new Date().getMinutes().toString().padStart(2, '0');
+            return `${month}/${date} ${hour}:${minute}`;
+        }
+
+
+        //送信
+        $("#send").on("click", function () {
+            //名前未入力の場合エラーを返す(このサイト参照：https://qiita.com/ntm718/items/c1c105099783e09504f0)
+            let error;
+            let value = $("#uname").val();
+            if (value == "" || !value.match(/[^\s\t]/)) {
+                error = true;
+            }
+
+            if (error) {
+                alert("名前は必須です");
+                return false;
+
+            } else {
+
+                const msg = {
+                    uname: $("#uname").val(),
+                    time: post_time(),
+                    text: $("#text").val()
+                }
+                const newPostRef = push(dbRef); //ユニークキーを生成
+                set(newPostRef, msg); //ユニークキーとメッセージを一緒に投げる
+            }
+            $("#uname").val(""); //送信したら名前の入力欄のテキストが自動で消える
+            $("#text").val(""); //送信したら本文の入力欄のテキストが自動で消える
+        });
+
+        //受信
+        onChildAdded(dbRef, function (data) {
+            const msg = data.val();
+            const key = data.key; //ユニークキー、削除・更新に必須！
+            let h = '<p id=" ' + key + ' ">';
+            h += '<p class="name_bold">'+msg.uname+'</p>'; //表示されるときに名前だけ太字にするためにpタグで括った
+            h += "　";
+            h += msg.time; //名前の隣に送信時刻を表示
+            h += '<br>';
+            h += "　";
+            h += '<span contentEditable="true" id="' + key + '_update">' + msg.text + '</span>'; //ダブルクリックで本文変更できる
+            h += '<span class="remove" data-key="' + key + '">🚮</span>'
+            h += '<span class="update" data-key="' + key + '">🆙</span>'
+            h += '</p>';
+            $("#output").prepend(h); //#outputの上に追加
+            $(".name_bold").css("font-weight", "bold"); //名前を太字
+        });
+
+        //削除イベント
+        $("#output").on("click", ".remove", function () {
+            const key = $(this).attr("data-key");
+            const remove_item = ref(db, "chat/" + key);
+            remove(remove_item); //Firebaseデータ削除関数
+        });
+
+        //更新イベント
+        $("#output").on("click", ".update", function () {
+            const key = $(this).attr("data-key");
+            update(ref(db, "chat/" + key), {
+                text: $("#" + key + '_update').html()
+            });
+        });
+
+        //削除処理がFirebase側で実行されたらイベント発生
+        onChildRemoved(dbRef, (data) => {
+            $("#" + data.key).remove(); //DOM操作関数（対象を削除）
+        });
+
+        //更新処理がFirebase側で実行されたらイベント発生
+        onChildChanged(dbRef, (data) => {
+            $("#" + data.key + '_update').html(data.val().text);
+            $("#" + data.key + '_update').fadeOut(800).fadeIn(800);
+        });
+
+
+    </script>
+</body>
+
+</html>

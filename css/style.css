@@ -1,0 +1,80 @@
+.container {
+    margin: auto;
+    
+}
+
+header {
+height: 100px;
+}
+
+.star {
+    color: red;
+}
+
+h1 {
+    text-align: center;
+    font-size: 50px;
+}
+
+button {
+    margin-bottom: 10px;
+    background-color: #D6909D;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    margin: 5px;
+    padding: 10px;
+    border-radius: 5px; /* 角を丸く */
+    color: white;
+}
+
+.send-button {
+    display: block;
+    text-align: right;
+}
+
+button:hover {
+    background-color: #D67687;
+  }
+
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    background-color: #F2D8D1;
+    /* color: #561B24; */
+    color: #691C23;
+    background-image: url(../img/5208229.jpg) 
+}
+
+div {
+    margin: 5px;
+    /* width: 1210px; これがあったから画面幅小さくしたときにボタンとかついてこなかった*/
+}
+
+textarea {
+    font-family: Arial, Helvetica, sans-serif;
+    /* width: 1200px; */
+    height: 50px;
+    width: 100%;
+}
+
+.new {
+    border: 5px solid #D67687;
+
+}
+
+#output {
+    background-color: #FAF1EB;
+}
+
+p {
+    margin-left: 20px;
+    margin-bottom: 1px;
+}
+
+
+/* @media screen and (max-width: 767px) { /*ウィンドウ幅が最大767pxまでの場合に適用*/
+    /* .container {
+        width: auto;
+  
+    }
+    } 今回は使ってない*/     
